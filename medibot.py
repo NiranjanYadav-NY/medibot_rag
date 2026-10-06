@@ -7,15 +7,15 @@ from langchain.chains import RetrievalQA
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
 from langchain_huggingface import HuggingFaceEndpoint
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 
+from dotenv import load_dotenv
+load_dotenv()
 
-## Uncomment the following files if you're not using pipenv as your virtual environment manager
-#from dotenv import load_dotenv, find_dotenv
-#load_dotenv(find_dotenv())
 
 
 DB_FAISS_PATH="vectorstore/db_faiss"
+
 @st.cache_resource
 def get_vectorstore():
     embedding_model=HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
@@ -66,8 +66,6 @@ def main():
         
         #HUGGINGFACE_REPO_ID="mistralai/Mistral-7B-Instruct-v0.3" # PAID
         #HF_TOKEN=os.environ.get("HF_TOKEN")  
-
-        #TODO: Create a Groq API key and add it to .env file
         
         try: 
             vectorstore=get_vectorstore()
@@ -75,11 +73,11 @@ def main():
                 st.error("Failed to load the vector store")
 
             qa_chain = RetrievalQA.from_chain_type(
-                llm=ChatGroq(
-                    model_name="meta-llama/llama-4-maverick-17b-128e-instruct",  # free, fast Groq-hosted model
+                llm=ChatGoogleGenerativeAI(
+                    model="gemini-3.8-flash",
                     temperature=0.0,
-                    groq_api_key=os.environ["GROQ_API_KEY"],
-                ),
+                    google_api_key=os.environ["GEMINI_API_KEY"],
+),
                 chain_type="stuff",
                 retriever=vectorstore.as_retriever(search_kwargs={'k':3}),
                 return_source_documents=True,
